@@ -1,0 +1,253 @@
+# ============================================================================
+#    Phase 3  —  Single Source of Truth
+#  Loaded by: train_agent_ppo, train_agent_sac, goal_manager_dynamic
+# ============================================================================
+
+seed: 42
+
+# ── Runtime Structure Notes ─────────────────────────────────────────────────
+# Flat keys are kept for backward compatibility with older scripts.
+# New grouped sections below are the preferred place for active runtime knobs.
+
+# ── Observation / Action ────────────────────────────────────────────────────
+obs_dim:  54          # 24 scan + 24 scan_velocity + 4 nav + 2 danger (v8)
+act_dim:   2          # (linear_vel, angular_vel)
+
+# ── Velocity limits ─────────────────────────────────────────────────────────
+lin_min: 0.0          # robot can stop (critical for obstacle avoidance)
+lin_max: 0.26         # TurtleBot3 max linear velocity (m/s)
+ang_max: 1.82         # TurtleBot3 max angular velocity (rad/s)
+
+# ── Optional reverse escape mode ───────────────────────────────────────────
+# Default is OFF so existing checkpoints keep the same action semantics.
+# Enable only for new runs intended to learn escape behavior in funnel traps.
+reverse_motion:
+  enabled: false
+  speed: 0.10               # max reverse speed when reverse is unlocked
+  unlock_scan_dist: 0.32    # unlock reverse if nearest obstacle is closer than this (m)
+  unlock_approach: -0.03    # unlock reverse if approach signal is more negative than this
+  caution_forward_factor: 0.55   # cap forward speed while reverse mode is unlocked
+  reward_escape_bonus: 0.0       # keep zero by default; increase only for dedicated reverse runs
+
+# ── PPO Hyperparameters ─────────────────────────────────────────────────────
+rollout_len:  2048    # steps per PPO update
+batch_size:    256    # minibatch size for PPO epochs
+epochs:         10    # PPO optimisation epochs per update
+gamma:        0.99    # discount factor (shared with SAC)
+lam:          0.95    # GAE lambda
+clip_eps:     0.20    # PPO clipping epsilon
+entropy_coef: 0.01    # entropy bonus coefficient
+vf_coef:      0.50    # value function loss weight
+lr:          0.0003   # PPO learning rate
+max_grad_norm: 0.5    # PPO gradient clipping
+reward_scale: 0.01    # scale rewards before buffer (faster critic convergence)
+target_kl:   0.02     # early stop PPO epochs if KL > this
+
+# ── Danger Zone mode (env var DZ_MODE) ────────────────────────────────────
+# baseline    — no observation preprocessing, weak proximity reward
+# static_dz   — amplify close LiDAR readings (distance only)
+# velocity_dz — static_dz + amplify approaching obstacles + approach penalty
+# stam        — learned Spatial-Temporal Attention Module (no preprocessing)
+
+# ── Environment Runtime Settings ────────────────────────────────────────────
+environment:
+  danger_zone:
+    radius_norm: 0.20
+    amplify: 3.0
+    velocity_amplify: 2.0
+
+  rewards:
+    collision: -100.0
+    goal: 200.0
+    stuck: -95.0
+    timeout: -110.0
+    step_penalty: -0.03
+    progress_scale: 7.5
+    heading_bonus: 0.25
+    spin_penalty_scale: 0.60
+    center_loiter_penalty: 0.25
+
+  proximity:
+    baseline_dist: 0.50
+    baseline_scale: 1.2
+    danger_zone_dist: 0.70
+    danger_zone_scale: 1.5
+
+  termination:
+    goal_radius: 0.45
+    collision_dist: 0.20
+    max_steps: 500
+    stuck_window: 60
+    stuck_threshold: 0.10
+    stall_progress: 0.12
+    no_progress_window: 100
+    no_progress_min_steps: 180
+    no_progress_threshold: 0.20
+    center_loiter_radius: 1.8
+    far_goal_min_dist: 3.5
+    center_loiter_min_steps: 90
+    center_loiter_window: 50
+    enable_no_progress_termination: false
+    enable_center_loiter_termination: false
+
+# ── Trainer Runtime Guards ──────────────────────────────────────────────────
+trainer_runtime:
+  terminal_filters:
+    reset_settle_s: 0.25           # Increased from 0.10s to ensure physics settles before checking collisions
+    min_stuck_steps: 60
+    min_timeout_steps: 500
+
+# ── Goal Manager Runtime Settings ───────────────────────────────────────────
+goal_manager:
+  terminal_filters:
+    reset_settle_s: 0.10
+    min_stuck_seconds: 8.5
+    min_timeout_seconds: 70.0
+
+  safety:
+    goal_radius: 0.30
+    safe_margin: 0.20
+    v_peak: 0.18
+
+# ── SAC Hyperparameters ─────────────────────────────────────────────────────
+sac_hidden:      256  # hidden layer width
+sac_batch:       256  # gradient batch size
+sac_tau:       0.005  # target network soft-update rate
+sac_lr_actor: 0.0003  # actor learning rate (restored: divergence was from missing reward_scale)
+sac_lr_critic: 0.0003 # critic learning rate
+sac_lr_alpha:  0.0003 # temperature learning rate
+sac_warmup:    10000  # random action steps before learning (10K — literature standard)
+sac_update_every:  1  # env steps between gradient updates
+sac_grad_steps:    1  # gradient steps per update (1 = literature standard, stable)
+sac_grad_clip:   1.0  # critic gradient clipping max norm
+sac_log_every:    10  # update steps between update-log rows
+sac_buffer:   200000  # replay buffer capacity (200K)
+sac_target_entropy: -2.0  # standard = -act_dim (velocity obs makes Phase 5 learnable)
+
+# ── SAC v8 — STAM v2 + PER + n-step + residual ─────────────────────────────
+sac_v8_frame_stack:     3     # temporal LiDAR frames (obs = 24*3 + 6 = 78)
+sac_v8_nstep:           3     # n-step returns for faster credit assignment
+sac_v8_stam_heads:      2     # multi-head self-attention heads
+sac_v8_stam_d_model:   16     # per-sector embedding dimension
+sac_v8_per_alpha:     0.6     # PER priority exponent
+sac_v8_per_beta_start: 0.4    # PER IS correction start (anneals to 1.0)
+sac_v8_per_beta_frames: 500000  # steps to anneal beta
+sac_v8_entropy_start: -0.5    # more exploration early (prevent collapse)
+sac_v8_entropy_end:   -1.5    # softer target (less greedy)
+sac_v8_entropy_anneal_eps: 1500  # slower annealing — more time to learn
+
+# ── SAC v9 — STAM v3 + Safety + Smoothing + Domain Randomization ──────────
+sac_v9_action_smooth:       0.1     # penalty coef for jerky action changes
+sac_v9_safety_thresh_start: 0.95   # early: safety critic barely intervenes (hasn't learned)
+sac_v9_safety_thresh_end:   0.70   # late: safety critic actively protects
+sac_v9_safety_thresh_anneal: 500   # episodes to anneal safety threshold
+sac_v9_safety_coef:         0.3    # safety critic loss weight
+sac_v9_collision_horizon:   5      # steps before collision labelled as 'danger'
+sac_v9_aux_loss_coef:       0.2    # auxiliary head loss weight
+sac_v9_phase_boost:         2.0    # PER priority multiplier near phase transitions
+sac_v9_lidar_noise:         0.02   # Gaussian noise std on LiDAR (sim-to-real)
+sac_v9_obs_delay_prob:      0.05   # probability of 1-step observation delay
+sac_v9_reverse_speed:       0.10   # max reverse speed (m/s), unlocked when danger > threshold
+sac_v9_near_miss_dist:      0.40   # distance (m) for near-miss bonus
+sac_v9_near_miss_bonus:     0.3    # reward bonus for surviving a close call
+sac_v9_lr_min_factor:       0.1    # cosine LR decays to 10% of initial
+sac_v9_lr_cosine_eps:       2000   # episodes for full cosine cycle
+
+# ── SAC v11 — Recurrent (GRU) + STAM v2 + Stability ──────────────────────
+sac_v11_actor_hidden:      256   # actor MLP width before GRU
+sac_v11_critic_hidden:     384   # wider critic for long-horizon stability
+sac_v11_batch:              64   # recurrent batch size (sequence batches)
+sac_v11_seq_len:            16   # learning sequence length (after burn-in)
+sac_v11_burn_in:             8   # burn-in steps to warm hidden state
+sac_v11_stam_d_model:       16   # per-sector embedding
+sac_v11_stam_heads:          2   # attention heads
+sac_v11_huber_delta:       10.0  # critic Huber loss delta
+sac_v11_entropy_start:     -0.5  # match v8 warmup target
+sac_v11_entropy_end:       -1.5  # match v8 final entropy target
+sac_v11_entropy_anneal_eps: 500  # match v8 annealing horizon
+sac_v11_action_smooth:     0.02  # small penalty for action oscillation
+
+# ── Curriculum Thresholds (CURRICULUM v2.0) ──────────────────────────────────
+#
+# TWO STAGES:
+#   STATIC (Phases 1-4): All obstacles FROZEN, learn pure navigation
+#   DYNAMIC (Phases 5-7): Gradual obstacle activation and speed increase
+#
+# Phase 1 → 2: CORE (1.2-2.1m) → EXPAND (add 2.5-3.0m)
+# Phase 2 → 3: EXPAND → REACH (add corner entrances 3.8m)
+# Phase 3 → 4: REACH → FULL (add corner depths 4.5m) — EQUAL goal weighting!
+# Phase 4 → 5: FULL → SLOW DYNAMICS (6 obstacles @ 0.08 m/s)
+# Phase 5 → 6: SLOW → MEDIUM DYNAMICS (9 obstacles @ 0.12 m/s)
+# Phase 6 → 7: MEDIUM → FULL DYNAMICS (15 obstacles @ 0.18 m/s)
+#
+# STATIC STAGE thresholds
+phase1_sr_thresh: 0.70    # 70% → Phase 2 (must master center hub)
+phase2_sr_thresh: 0.70    # 70% → Phase 3 (must master doorways)
+phase3_sr_thresh: 0.65    # 65% → Phase 4 (corner entrances)
+phase4_sr_thresh: 0.60    # 60% → Phase 5 after static bridge + far-corridor preview
+
+# DYNAMIC STAGE thresholds
+phase5_sr_thresh: 0.60    # 60% → Phase 6 (adapt to slow obstacles)
+phase6_sr_thresh: 0.65    # 65% → Phase 7 (enter final dynamics only after stronger medium-dynamic mastery)
+# Phase 7 is final - no threshold
+
+# Rolling window sizes
+phase1_window: 50     # Standard window
+phase2_window: 50
+phase3_window: 50
+phase4_window: 120    # Longer static bridge window so far corridor goals are truly learned
+phase5_window: 50     # Dynamic phases use standard windows
+phase6_window: 100    # Require a longer stable window before entering Phase 7
+phase7_window: 80     # Evaluate final-stage mastery on a shorter window so collapse is detected sooner
+phase7_regress_sr_thresh: 0.35   # If final-stage SR falls below 35% (lowered from 50%), drop back to Phase 6 and reconsolidate
+phase7_coverage_every: 4   # In Phase 7, inject one missing hard-goal coverage sample every 4 episodes
+
+# ── Curriculum Pool Weights ────────────────────────────────────────────────
+# These weights define how heavily each goal subset is sampled in the later
+# curriculum phases. The intent is to smooth the transition into long corridor
+# and corner navigation instead of jumping directly into too many 4.0m failures.
+curriculum:
+  phase4_weights:
+    core: 1
+    expand: 1
+    mid: 0
+    inter_corridor: 3
+    inter_corner: 2
+    deep_corridor: 1
+    deep_corner: 0
+
+  phase5_weights:
+    core: 1
+    expand: 2
+    mid: 1
+    inter_corridor: 2
+    inter_corner: 2
+    deep_corridor: 1
+    deep_corner: 0
+
+  phase6_weights:
+    core: 1
+    expand: 1
+    mid: 2
+    inter_corridor: 1
+    inter_corner: 2
+    deep_corridor: 1
+    deep_corner: 0
+
+  phase7_weights:
+    core: 2
+    expand: 2
+    inter_corridor: 3
+    inter_corner: 2
+    deep_master: 2
+    deep_stretch: 1
+
+# ── Training ────────────────────────────────────────────────────────────────
+max_episodes: 99999
+save_every:      50   # checkpoint every N episodes
+keep_ckpts:       8   # rolling checkpoint count (increased for recovery safety)
+
+# ── Paths ───────────────────────────────────────────────────────────────────
+log_dir:       ~/tb3_drl_logs/phase3
+model_dir:     ~/tb3_drl_models/phase3
+sac_model_dir: ~/tb3_drl_models/sac

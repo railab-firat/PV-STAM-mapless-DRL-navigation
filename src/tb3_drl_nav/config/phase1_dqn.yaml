@@ -1,0 +1,34 @@
+# ============================================================================
+#  phase1_dqn.yaml —   Phase 1  DQN Configuration
+# ============================================================================
+#
+#  Reference configuration for the Phase 1 DQN training run that achieved
+#  98% rolling success rate over 5 000 episodes.
+#
+#  Usage:
+#    ros2 run tb3_drl_nav train_agent_dqn \
+#        --ros-args --params-file src/tb3_drl_nav/config/phase1_dqn.yaml \
+#        -p run_id:="phase1_v1"
+#
+#  Note: These map to ROS2 parameters declared in DQNTrainer.__init__().
+# ============================================================================
+
+# ── Training budget ───────────────────────────────────────────────────────────
+episodes:       5000        # Total training episodes
+max_steps:       600        # Max steps per episode before timeout
+
+# ── RL hyperparameters ────────────────────────────────────────────────────────
+gamma:          0.99        # Discount factor
+lr:           0.001         # Adam learning rate (1e-3)
+batch:           64         # Mini-batch size sampled from replay buffer
+start_learn:   2000         # Steps before learning begins (fill buffer first)
+target_update: 1000         # Hard target network update interval (steps)
+buffer:        50000        # Replay buffer capacity
+
+# ── Experiment I/O ────────────────────────────────────────────────────────────
+run_id:        "phase1_v1"                        # Run label (used for checkpoint/log naming)
+runs_dir:      "~/tubitak_2209_ws/drl_runs"       # Output directory
+
+# ── Evaluation mode ───────────────────────────────────────────────────────────
+eval_mode:     false        # Set true to run greedy evaluation (no exploration)
+eval_episodes: 200          # Number of episodes when eval_mode: true

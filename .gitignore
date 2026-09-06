@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ROS 2 build artefacts
+build/
+install/
+log/
+
+# Training checkpoints — published as GitHub Release assets, not tracked here
+*.ckpt
+ckpt_*.pt
+!models/**/actor_latest.pt
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Backups
+*.bak
+*.bak_*
+*.backup_*

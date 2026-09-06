@@ -1,0 +1,9 @@
+# Core learning stack
+torch>=2.0
+numpy>=1.24
+scipy>=1.10
+
+# Figure rendering
+matplotlib>=3.7
+
+# ROS 2 (Humble) is installed separately; see README.
