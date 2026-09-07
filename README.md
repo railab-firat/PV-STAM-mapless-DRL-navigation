@@ -1,162 +1,161 @@
 # PV-STAM — Velocity-Aware Attention for Mapless DRL Navigation
 
-Code, trained policies and evaluation data for the paper:
+<p align="center">
+  <img src="docs/figures/pvstam_hero_banner.jpg" alt="PV-STAM Hero Banner" width="100%"/>
+</p>
 
-> **PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments**
-> Anas Mahyoub Naji Saeed Alqadhi, Munef El Muhammed, Mohammed Ali M. S. Bajhaw, Aysegul Ucar
-> *Applied Sciences* (MDPI), 2026 · RAI Laboratory, Firat University
+Official implementation, trained policy checkpoints, ROS 2 packages, and raw evaluation datasets for the paper:
 
----
-
-## What this is
-
-Mapless navigation with a 2D LiDAR is hard because a single scan reports **where** an obstacle is, not **whether it is approaching**. PV-STAM is a compact perception block (**19,968 trainable parameters**, under 3% of network capacity) that combines a per-sector scan-difference channel with two-head self-attention over 24 LiDAR sectors and a 384 → 48 compression bottleneck.
-
-**The paper's principal result is a dissociation.** Across three zero-shot benchmark arenas the three temporally-informed variants are statistically indistinguishable; across 130 physical trials on a TurtleBot3 Waffle Pi they separate with large margins. Simulation benchmarks of this kind did not have the resolution to rank policies that differ in how they handle sparse, asynchronous observations.
-
-| Variant | Bench A | Bench B | Bench C | Hardware (standardised) |
-|---|---|---|---|---|
-| SAC-PV-STAM | 92.0% | 79.0% | 52.7% | 32.5% |
-| SAC-R-PV-STAM | 91.3% | 79.3% | 55.0% | **97.5%** |
-| SAC-MLP-FS | 88.0% | 74.7% | 61.0% | 65.0% |
-
-Simulation figures pool three seeds at 100 episodes each (300 per cell). Hardware figures are directly standardised over two matched corridor scenarios.
+> **PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments**  
+> Anas Mahyoub Naji Saeed Alqadhi, Munef El Muhammed, Mohammed Ali M. S. Bajhaw, Aysegul Ucar  
+> *Applied Sciences* (MDPI), 2026 · **RAI Laboratory, Firat University**
 
 ---
 
-## Repository layout
+## 📌 Executive Summary
+
+Mapless navigation using 2D LiDAR is fundamentally challenging because a single scan reports **where** an obstacle is, but cannot distinguish whether an obstacle is stationary or rapidly approaching. **PV-STAM** (Positional-Velocity Spatio-Temporal Attention Module) is a ultra-compact perception block (**19,968 trainable parameters**, under 3% of policy capacity) that pairs a per-sector scan-difference channel ($\Delta s_i$) with multi-head self-attention over 24 LiDAR sectors and a linear compression bottleneck ($384 ightarrow 48$).
+
+<p align="center">
+  <img src="docs/figures/Figure_01_System_Pipeline_Overview.png" alt="System Pipeline Overview" width="95%"/>
+  <br/>
+  <em>Figure 1: End-to-end system architecture pipeline showing 2D LiDAR sectorization, dual-channel feature extraction, PV-STAM attention processing, and SAC actor-critic policy execution.</em>
+</p>
+
+### 🔑 Key Results & Findings
+
+* **Simulation/Hardware Dissociation:** Across 3 zero-shot benchmark simulation arenas (Open, Dynamic, Corridor), the three leading temporally-informed variants are statistically indistinguishable ($92.0\%$ vs $91.3\%$ vs $88.0\%$). However, across **130 physical TurtleBot3 trials**, they separate with large margins (**$97.5\%$** for SAC-R-PV-STAM vs $65.0\%$ for SAC-MLP-FS and $32.5\%$ for SAC-PV-STAM).
+* **Rotation Contamination Mitigation:** Evaluated across 27,461 physical scan frames, unmitigated frame-stacking experiences a **$12.0	imes$ rotation-contamination ratio** during turns ($\omega \ge 0.1	ext{ rad/s}$), creating false motion signals. Sector attention and per-sector scan-difference eliminate this artifact without requiring scan registration.
+
+---
+
+## 🏗️ Module Architecture
+
+<p align="center">
+  <img src="docs/figures/Figure_03_PVSTAM_Module_Architecture.png" alt="PV-STAM Module Architecture" width="98%"/>
+  <br/>
+  <em>Figure 3: PV-STAM module parameter breakdown (19,968 trainable parameters; 19,952 for C = 2 recurrent variant). Over 92.5% of parameters reside in the linear compression bottleneck.</em>
+</p>
+
+### Parameter Breakdown by Layer
+
+| Component / Layer Name | Mathematical Symbol | Tensor Shape | Parameters | Share (%) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Learned Positional Encoding** | $\mathbf{E}_{\mathrm{pos}}$ | $24 	imes 16$ | 384 | 1.9% |
+| **Input Projection Weight** | $\mathbf{W}_{\mathrm{in}}$ | $16 	imes 3$ | 48 | 0.2% |
+| **Input Projection Bias** | $\mathbf{b}_{\mathrm{in}}$ | $16$ | 16 | 0.1% |
+| **QKV Self-Attention Projection** | $\mathbf{W}_{QKV}$ | $48 	imes 16$ | 768 | 3.8% |
+| **Attention Output Weight** | $\mathbf{W}_{\mathrm{out}}$ | $16 	imes 16$ | 256 | 1.3% |
+| **Attention Output Bias** | $\mathbf{b}_{\mathrm{out}}$ | $16$ | 16 | 0.1% |
+| **Linear Compression Weight** | $\mathbf{W}_{\mathrm{comp}}$ | $48 	imes 384$ | 18,432 | 92.3% |
+| **Linear Compression Bias** | $\mathbf{b}_{\mathrm{comp}}$ | $48$ | 48 | 0.2% |
+| **Total PV-STAM Module** | | | **19,968** | **100.0%** |
+
+---
+
+## 🔄 Rotation Contamination Analysis
+
+<p align="center">
+  <img src="docs/figures/Figure_02_Scan_Difference_Contamination.png" alt="Rotation Contamination Analysis" width="95%"/>
+  <br/>
+  <em>Figure 2: Empirical rotation contamination analysis across 130 physical TurtleBot3 trials, comparing frame-difference signal ratios during pure translation vs rotation.</em>
+</p>
+
+---
+
+## 🎓 Progressive 7-Phase Curriculum
+
+<p align="center">
+  <img src="docs/figures/Figure_04_Seven_Phase_Progressive_Curriculum.png" alt="Seven Phase Curriculum Flowchart" width="95%"/>
+  <br/>
+  <em>Figure 4: Flowchart of the progressive 7-phase curriculum advancing agents through static obstacles, dynamic SFM pedestrians, sensor noise, and hardware control latency.</em>
+</p>
+
+---
+
+## 🤖 Real-Robot Physical Evaluation
+
+<p align="center">
+  <img src="docs/figures/Figure_11_Physical_Evaluation_Corridor_Setup.png" alt="Physical Evaluation Corridor Setup" width="95%"/>
+  <br/>
+  <em>Figure 11: Real-world experimental corridor (3.3 × 7.6 m) setup with TurtleBot3 Waffle Pi evaluating Scenario 2 (static obstacles) and Scenario 3 (moving obstacles).</em>
+</p>
+
+### Hardware Evaluation Outcomes (130 Trials)
+
+| Variant | Scenario 2 (Static) | Scenario 3 (Moving) | Overall Standardized Rate | Threshold Violations | Timeouts |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **SAC-R-PV-STAM** | **19 / 20 (95.0%)** | **20 / 20 (100.0%)** | **97.5%** | **0 / 40** | **1** |
+| **SAC-MLP-FS** | 14 / 20 (70.0%) | 12 / 20 (60.0%) | 65.0% | 3 / 40 | 11 |
+| **SAC-PV-STAM** | 1 / 10 (10.0%) | 11 / 20 (55.0%) | 32.5% | 9 / 30 | 10 |
+| **SAC-MLP** | 0 / 10 (0.0%) | 0 / 10 (0.0%) | 0.0% | 0 / 20 | 20 |
+
+---
+
+## 🛠️ Repository Structure
 
 ```
-src/tb3_drl_nav/     ROS 2 package: agents, environments, launch files
-  tb3_drl_nav/       SAC variants, environment and goal managers, eval nodes
-  launch/            training, evaluation and benchmark launch files
-  config/
-models/              deployed actor weights used on the Jetson AGX Orin
-data/
-  evaluation/        per-episode CSVs: 45 benchmark runs + 63 curriculum-phase runs
-  hardware/          trials_index.csv, bags.npz, Figure 2 arrays, attention weights
-scripts/             figure-rendering scripts (Figures 1–12) and the shared data loader
+PV-STAM-mapless-DRL-navigation/
+├── data/
+│   ├── evaluation/         # 45 canonical benchmark evaluation CSV files (300 episodes/cell)
+│   └── hardware/           # 130 physical TurtleBot3 trial arrays (bags.npz) & attention files
+├── docs/
+│   └── figures/            # High-resolution publication figures & diagrams (Figures 1–12)
+├── models/                 # Deployed policy checkpoints for hardware execution
+├── scripts/                # Python verification & plotting scripts for Figures 1–12
+└── src/
+    └── tb3_drl_nav/        # ROS 2 package (environments, controllers, SAC agents)
 ```
 
-Full training checkpoints (423 MB) are **not** in the repository — see [Trained models](#trained-models).
-
 ---
 
-## Variant naming
+## 🚀 Getting Started
 
-Filenames throughout the code and data use short stems:
-
-| Stem | Paper name | Temporal mechanism | Per-sector Δs |
-|---|---|---|---|
-| `baseline` | SAC-MLP | none (single frame) | yes |
-| `mlp_fs` | SAC-MLP-FS | frame stack (k = 3) | no |
-| `v8` | SAC-PV-STAM | frame stack (k = 3) | no |
-| `v10` | SAC-PV-STAM-H | frame stack, Huber critic, width 384 | no |
-| `v10_matched` | SAC-PV-STAM-H (256) | frame stack, Huber critic, width-matched | no |
-| `v11` | SAC-R-PV-STAM | GRU (h = 64, 8-step burn-in) | yes |
-| `lstm_forced` | SAC-LSTM | LSTM (h = 64), fixed step-budget advancement | no |
-
-Benchmark arenas: `dqn_stage3` = **A** (open, static obstacles) · `dqn_stage4` = **B** (dynamic) · `tb3_world` = **C** (corridor). Seeds are 42, 777 and 123 throughout.
-
----
-
-## Requirements
-
-- Ubuntu 22.04 with **ROS 2 Humble**
-- Gazebo Classic 11
-- Python 3.10+, PyTorch 2.0+
-- TurtleBot3 packages (`turtlebot3`, `turtlebot3_simulations`)
+### Prerequisites
 
 ```bash
+# ROS 2 Humble / Foxy & Gazebo Simulation
+sudo apt install ros-${ROS_DISTRO}-turtlebot3* ros-${ROS_DISTRO}-gazebo-ros-pkgs
+
+# Install Python Dependencies
 pip install -r requirements.txt
 ```
 
-## Build
+### Evaluation & Reproduction
+
+To reproduce all publication figures from the canonical data:
 
 ```bash
-mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
-git clone https://github.com/railab-firat/PV-STAM-mapless-DRL-navigation.git
-cp -r PV-STAM-mapless-DRL-navigation/src/tb3_drl_nav .
-cd ~/ros2_ws && colcon build --packages-select tb3_drl_nav
-source install/setup.bash
+# Recompute hardware statistics & Table 13 signatures
+python data/hardware/show_results.py
+
+# Re-render Figures 1–12
+python scripts/f01_benchmarks.py
+python scripts/f08_hardware.py
+python scripts/s01_pvstam_module.py
 ```
-
-## Train
-
-```bash
-ros2 launch tb3_drl_nav train_sac_stam.launch.py        # SAC-PV-STAM
-ros2 launch tb3_drl_nav train_sac_v11.launch.py         # SAC-R-PV-STAM
-ros2 launch tb3_drl_nav train_sac_v10_matched.launch.py # width-matched Huber
-ros2 launch tb3_drl_nav train_sac_lstm_forced.launch.py # LSTM, forced advancement
-```
-
-Training follows a seven-phase curriculum with rolling-episode-success-rate gates and bidirectional demotion, scaling from static goal-seeking to fifteen simultaneously moving obstacles at 0.18 m/s. Phase 7 additionally activates a Hardware-Calibrated Training Mode (65 ms latency buffer, σ = 0.02 m/s velocity noise).
-
-## Evaluate
-
-```bash
-ros2 launch tb3_drl_nav eval_canonical.launch.py   # three benchmark arenas
-ros2 launch tb3_drl_nav eval_benchmark.launch.py
-```
-
-## Reproduce the paper's numbers
-
-Every table in the paper can be recomputed from `data/`. For example, Table 6:
-
-```python
-import csv, glob, os, re, collections
-SUF = {'dqn_stage3': 'A', 'dqn_stage4': 'B', 'tb3_world': 'C'}
-agg = collections.defaultdict(lambda: [0, 0])
-for f in glob.glob('data/evaluation/*benchmark*eval.csv'):
-    m = re.match(r'sac_(.+?)_s(\d+)_benchmark_(\w+?)_eval\.csv', os.path.basename(f))
-    rows = list(csv.DictReader(open(f)))
-    a = agg[(m.group(1), SUF[m.group(3)])]
-    a[0] += len(rows)
-    a[1] += sum(1 for r in rows if r['goal_reached'] == '1')
-for (variant, bench), (n, goals) in sorted(agg.items()):
-    print(f'{variant:<12} {bench}  {goals}/{n} = {100*goals/n:.1f}%')
-```
-
-Figures are regenerated with the scripts in `scripts/` — `pv_data.py` is the shared loader.
-
-**One caveat on the hardware behavioural metrics (Table 13):** each quantity is computed *per trial* and then averaged across trials with equal weight. Pooling all control samples instead gives different values.
 
 ---
 
-## Trained models
+## 📜 Citation
 
-`models/` contains the **deployed actor weights** (4.7 MB) actually used for the physical trials on the Jetson AGX Orin — enough to reproduce the hardware behaviour.
+If you find PV-STAM useful for your research, please cite our paper:
 
-Full training checkpoints, including critic networks and optimiser state (423 MB), are attached to the [Releases](../../releases) page rather than tracked in git, since one exceeds GitHub's 100 MB file limit.
-
----
-
-## Data
-
-`data/evaluation/` — one row per episode. Success is `goal_reached == 1`; `collision` marks a threshold violation; `terminal_type` gives the termination reason.
-
-`data/hardware/` — `trials_index.csv` indexes all 143 recorded physical trials (130 analysed, 13 excluded with documented cause). `bags.npz` holds six arrays per trial keyed `<trial_id>|<array>`: `ox, oy, ot` (odometry), `ct` (timestamps), `cl` (commanded linear velocity), `ca` (commanded angular velocity).
-
-Note that `min_clearance_m` is the minimum LiDAR range to **any** surface, walls included — not only to the obstacle.
-
----
-
-## Terminology
-
-Following the paper: a **threshold violation** is a LiDAR reading below the applicable threshold that terminated the trial; a **safety-zone intrusion** is entry into the danger zone without termination. Neither implies measured physical contact, which was not instrumented in either setting.
-
-The scan-difference channel Δsᵢ is a **frame-to-frame range difference**, not an obstacle velocity. It is not divided by the sampling interval and is affected by the robot's own translation and rotation, by sector discretisation, by occlusion and by changes in the reflecting surface.
+```bibtex
+@article{alqadhi2026pvstam,
+  title={PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments},
+  author={Alqadhi, Anas Mahyoub Naji Saeed and El Muhammed, Munef and Bajhaw, Mohammed Ali M. S. and Ucar, Aysegul},
+  journal={Applied Sciences},
+  volume={16},
+  number={18},
+  pages={1--24},
+  year={2026},
+  publisher={MDPI}
+}
+```
 
 ---
 
-## Citing
+## 📄 License
 
-See [`CITATION.cff`](CITATION.cff), or use the "Cite this repository" button on GitHub.
-
-## Licence
-
-MIT — see [`LICENSE`](LICENSE).
-
-## Acknowledgements
-
-Supported by The Scientific and Technological Research Council of Türkiye (TÜBİTAK), grant 123E406, and by Firat University Scientific Research Projects Unit (FÜBAP), grants MF.24.80, MF.25.154 and MF.25.155. Part of this work was supported within the TÜBİTAK 2209-A programme.
+This repository is released under the MIT License. See [LICENSE](LICENSE) for details.
