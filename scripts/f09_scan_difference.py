@@ -14,7 +14,9 @@ import pv_style as S
 import matplotlib.pyplot as plt, numpy as np
 from matplotlib.patches import Patch, FancyBboxPatch, FancyArrowPatch
 S.apply()
-data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "PVSTAM_PAPER_RESOURCES_ARCHIVE", "03_evaluation_datasets_csv"))
+repo_data = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "hardware"))
+external_data = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "PVSTAM_PAPER_RESOURCES_ARCHIVE", "03_evaluation_datasets_csv"))
+data_dir = repo_data if os.path.exists(os.path.join(repo_data, "fig2abcd.npz")) else external_data
 A = np.load(os.path.join(data_dir, "fig2abcd.npz"))
 H = np.load(os.path.join(data_dir, "fig2ef.npz"))
 BLUE, RED, DARKRED, GREEN = S.BLUE, S.RED, S.RED_DK, S.GREEN

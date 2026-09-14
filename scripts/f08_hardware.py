@@ -19,8 +19,10 @@ import pv_style as S
 import matplotlib.pyplot as plt, numpy as np
 S.apply()
 
-data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "PVSTAM_PAPER_RESOURCES_ARCHIVE"))
-idx = [r for r in csv.DictReader(open(os.path.join(data_dir, "04_hardware_trials_rosbags", "trials_index.csv"))) if r["decision"] == "saved"]
+repo_data = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "hardware"))
+external_data = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "PVSTAM_PAPER_RESOURCES_ARCHIVE", "04_hardware_trials_rosbags"))
+trials_csv = os.path.join(repo_data, "trials_index.csv") if os.path.exists(os.path.join(repo_data, "trials_index.csv")) else os.path.join(external_data, "trials_index.csv")
+idx = [r for r in csv.DictReader(open(trials_csv)) if r["decision"] == "saved"]
 NAME = {"baseline": "SAC-MLP", "mlp_fs": "SAC-MLP-FS", "v8": "SAC-PV-STAM",
         "v10": "SAC-PV-STAM-H (384)", "v11": "SAC-R-PV-STAM"}
 ORDER = ["SAC-MLP", "SAC-PV-STAM-H (384)", "SAC-PV-STAM", "SAC-MLP-FS", "SAC-R-PV-STAM"]

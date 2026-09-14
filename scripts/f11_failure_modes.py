@@ -9,9 +9,12 @@ import numpy as np
 from matplotlib.collections import LineCollection
 S.apply()
 
-data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "PVSTAM_PAPER_RESOURCES_ARCHIVE"))
-d = np.load(os.path.join(data_dir, "03_evaluation_datasets_csv", "bags.npz"))
-idx = {r["trial_id"]: r for r in csv.DictReader(open(os.path.join(data_dir, "04_hardware_trials_rosbags", "trials_index.csv")))}
+repo_data = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "hardware"))
+external_data = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "PVSTAM_PAPER_RESOURCES_ARCHIVE"))
+bags_p = os.path.join(repo_data, "bags.npz") if os.path.exists(os.path.join(repo_data, "bags.npz")) else os.path.join(external_data, "03_evaluation_datasets_csv", "bags.npz")
+trials_p = os.path.join(repo_data, "trials_index.csv") if os.path.exists(os.path.join(repo_data, "trials_index.csv")) else os.path.join(external_data, "04_hardware_trials_rosbags", "trials_index.csv")
+d = np.load(bags_p)
+idx = {r["trial_id"]: r for r in csv.DictReader(open(trials_p))}
 
 # scenario-2 (static) trials, one column per architecture
 COLS = [("baseline_s777_scen2", "SAC-MLP"),

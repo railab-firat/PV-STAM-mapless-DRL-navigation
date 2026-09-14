@@ -2,7 +2,15 @@
 """Print the hardware results table from trials_index.csv.
 Plain Python — no ROS needed.  Run:  python3 show_results.py"""
 import csv, collections, os
-from math import comb, sqrt
+from math import sqrt
+try:
+    from math import comb
+except ImportError:
+    from math import factorial
+    def comb(n, k):
+        if k < 0 or k > n:
+            return 0
+        return factorial(n) // (factorial(k) * factorial(n - k))
 
 D = os.path.dirname(os.path.abspath(__file__))
 rows = list(csv.DictReader(open(os.path.join(D, "trials_index.csv"))))
