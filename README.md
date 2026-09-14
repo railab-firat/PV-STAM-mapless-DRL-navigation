@@ -1,17 +1,17 @@
-# PV-STAM — Velocity-Aware Attention for Mapless DRL Navigation
+# PV-STAM: Velocity-Aware Attention for Mapless DRL Navigation
 
-Official implementation, trained policy checkpoints, ROS 2 packages, and raw evaluation datasets for the paper:
+Official repository for the research paper:
 
 > **PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments**  
 > **Anas Mahyoub Naji Saeed Alqadhi**, Munef El Muhammed, Mohammed Ali M. S. Bajhaw, Aysegul Ucar  
-> *Applied Sciences* (MDPI), 2026, 16(18), 9083 · [https://doi.org/10.3390/app16189083](https://doi.org/10.3390/app16189083)  
-> **RAI Laboratory, Firat University**
+> *Applied Sciences* (MDPI), 2026, 16(18), 9083  
+> DOI: [10.3390/app16189083](https://doi.org/10.3390/app16189083) · **RAI Laboratory, Firat University**
 
 ---
 
-## 📌 Executive Summary
+## Overview
 
-Mapless navigation using 2D LiDAR is fundamentally challenging because a single scan reports **where** an obstacle is, but cannot distinguish whether an obstacle is stationary or rapidly approaching. **PV-STAM** (Positional-Velocity Spatio-Temporal Attention Module) is an ultra-compact perception block (**19,968 trainable parameters**, under 3% of policy capacity) that pairs a per-sector scan-difference channel ($\Delta s_i$) with multi-head self-attention over 24 LiDAR sectors and a linear compression bottleneck ($384 \rightarrow 48$).
+Mapless navigation using 2D LiDAR is fundamentally challenging because a single scan reports obstacle range and bearing, but cannot distinguish whether an obstacle is stationary or actively moving toward the robot. **PV-STAM** (Positional-Velocity Spatio-Temporal Attention Module) is an ultra-compact perception module (**19,968 trainable parameters**, comprising under 3% of total policy capacity) that integrates a per-sector scan-difference channel ($\Delta s_i$) with multi-head self-attention over 24 LiDAR sectors and a linear compression bottleneck ($384 \rightarrow 48$).
 
 <p align="center">
   <img src="docs/figures/Figure_01_System_Pipeline_Overview.png" alt="System Pipeline Overview" width="95%"/>
@@ -19,14 +19,14 @@ Mapless navigation using 2D LiDAR is fundamentally challenging because a single 
   <em>Figure 1: End-to-end system architecture pipeline showing 2D LiDAR sectorization, dual-channel feature extraction, PV-STAM attention processing, and SAC actor-critic policy execution.</em>
 </p>
 
-### 🔑 Key Results & Findings
+### Key Findings
 
-* **Simulation/Hardware Dissociation:** Across 3 zero-shot benchmark simulation arenas (Open, Dynamic, Corridor), the three leading temporally-informed variants are statistically indistinguishable ($92.0\%$ vs $91.3\%$ vs $88.0\%$). However, across **130 physical TurtleBot3 trials**, they separate with large margins (**$97.5\%$** for SAC-R-PV-STAM vs $65.0\%$ for SAC-MLP-FS and $32.5\%$ for SAC-PV-STAM).
-* **Rotation Contamination Mitigation:** Evaluated across 27,461 physical scan frames, unmitigated frame-stacking experiences a **$12.0\times$ rotation-contamination ratio** during turns ($\omega \ge 0.1\text{ rad/s}$), creating false motion signals. Sector attention and per-sector scan-difference eliminate this artifact without requiring scan registration.
+* **Simulation and Hardware Dissociation:** Across three zero-shot benchmark simulation arenas (Open, Dynamic, Corridor), the three leading temporally-informed variants are statistically indistinguishable (92.0% vs 91.3% vs 88.0% success rate). However, across **130 physical TurtleBot3 trials**, performance diverges significantly: **97.5%** for SAC-R-PV-STAM versus 65.0% for SAC-MLP-FS and 32.5% for SAC-PV-STAM.
+* **Rotation Contamination Mitigation:** Evaluated across 27,461 physical scan frames, unmitigated frame-stacking exhibits a **12.0-fold rotation-contamination ratio** during turns ($\omega \ge 0.1\text{ rad/s}$), producing spurious motion signals. Sector attention and per-sector scan-differencing eliminate this artifact without requiring scan registration or odometry fusion.
 
 ---
 
-## 🏗️ Module Architecture
+## Module Architecture
 
 <p align="center">
   <img src="docs/figures/Figure_03_PVSTAM_Module_Architecture.png" alt="PV-STAM Module Architecture" width="98%"/>
@@ -50,7 +50,7 @@ Mapless navigation using 2D LiDAR is fundamentally challenging because a single 
 
 ---
 
-## 🔄 Rotation Contamination Analysis
+## Rotation Contamination Analysis
 
 <p align="center">
   <img src="docs/figures/Figure_02_Scan_Difference_Contamination.png" alt="Rotation Contamination Analysis" width="95%"/>
@@ -60,7 +60,7 @@ Mapless navigation using 2D LiDAR is fundamentally challenging because a single 
 
 ---
 
-## 🎓 Progressive 7-Phase Curriculum
+## Progressive Curriculum
 
 <p align="center">
   <img src="docs/figures/Figure_04_Seven_Phase_Progressive_Curriculum.png" alt="Seven Phase Curriculum Flowchart" width="95%"/>
@@ -70,7 +70,7 @@ Mapless navigation using 2D LiDAR is fundamentally challenging because a single 
 
 ---
 
-## 🤖 Real-Robot Physical Evaluation
+## Physical Hardware Evaluation
 
 <p align="center">
   <img src="docs/figures/Figure_11_Physical_Evaluation_Corridor_Setup.png" alt="Physical Evaluation Corridor Setup" width="95%"/>
@@ -89,7 +89,7 @@ Mapless navigation using 2D LiDAR is fundamentally challenging because a single 
 
 ---
 
-## 🛠️ Repository Structure
+## Repository Structure
 
 ```
 PV-STAM-mapless-DRL-navigation/
@@ -106,7 +106,7 @@ PV-STAM-mapless-DRL-navigation/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -118,15 +118,15 @@ sudo apt install ros-${ROS_DISTRO}-turtlebot3* ros-${ROS_DISTRO}-gazebo-ros-pkgs
 pip install -r requirements.txt
 ```
 
-### Evaluation & Reproduction
+### Evaluation and Reproduction
 
-To reproduce all publication figures from the canonical data:
+To reproduce all publication figures and tables from the canonical evaluation data:
 
 ```bash
 # Recompute hardware statistics & Table 13 signatures
 python data/hardware/show_results.py
 
-# Re-render Figures 1–12
+# Re-render publication figures
 python scripts/f01_benchmarks.py
 python scripts/f08_hardware.py
 python scripts/s01_pvstam_module.py
@@ -134,9 +134,21 @@ python scripts/s01_pvstam_module.py
 
 ---
 
-## 📜 Citation
+## Data Availability & Research Collaboration
 
-If you find PV-STAM useful for your research, please cite our published paper in *Applied Sciences*:
+The canonical benchmark evaluation logs (13,500+ episodes), physical hardware trial arrays (130 real TurtleBot3 runs), trained policy checkpoints, and reproduction scripts are all provided directly within this repository under `data/` and `models/`.
+
+If you require access to full raw training checkpoints across the 7-phase curriculum, complete TensorBoard event histories, raw high-definition video recordings, or wish to explore research collaborations, please contact:
+
+* **Author:** Anas Alqadhi
+* **Email:** [anas.m.qd@gmail.com](mailto:anas.m.qd@gmail.com)
+* **Affiliation:** RAI Laboratory, Department of Mechatronics Engineering, Firat University
+
+---
+
+## Citation
+
+If you use PV-STAM, our deployed policies, or benchmark datasets in your research, please cite our published paper:
 
 ```bibtex
 @Article{app16189083,
@@ -155,6 +167,6 @@ If you find PV-STAM useful for your research, please cite our published paper in
 
 ---
 
-## 📄 License
+## License
 
 This repository is released under the MIT License. See [LICENSE](LICENSE) for details.
