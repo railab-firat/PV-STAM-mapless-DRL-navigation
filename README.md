@@ -1,20 +1,16 @@
 # PV-STAM — Velocity-Aware Attention for Mapless DRL Navigation
 
-<p align="center">
-  <img src="docs/figures/pvstam_hero_banner.jpg" alt="PV-STAM Hero Banner" width="100%"/>
-</p>
-
 Official implementation, trained policy checkpoints, ROS 2 packages, and raw evaluation datasets for the paper:
 
 > **PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments**  
-> Anas Mahyoub Naji Saeed Alqadhi, Munef El Muhammed, Mohammed Ali M. S. Bajhaw, Aysegul Ucar  
-> *Applied Sciences* (MDPI), 2026 · **RAI Laboratory, Firat University**
+> **Anas Alqadhi**  
+> **RAI Laboratory, Firat University**, 2026
 
 ---
 
 ## 📌 Executive Summary
 
-Mapless navigation using 2D LiDAR is fundamentally challenging because a single scan reports **where** an obstacle is, but cannot distinguish whether an obstacle is stationary or rapidly approaching. **PV-STAM** (Positional-Velocity Spatio-Temporal Attention Module) is a ultra-compact perception block (**19,968 trainable parameters**, under 3% of policy capacity) that pairs a per-sector scan-difference channel ($\Delta s_i$) with multi-head self-attention over 24 LiDAR sectors and a linear compression bottleneck ($384 ightarrow 48$).
+Mapless navigation using 2D LiDAR is fundamentally challenging because a single scan reports **where** an obstacle is, but cannot distinguish whether an obstacle is stationary or rapidly approaching. **PV-STAM** (Positional-Velocity Spatio-Temporal Attention Module) is an ultra-compact perception block (**19,968 trainable parameters**, under 3% of policy capacity) that pairs a per-sector scan-difference channel ($\Delta s_i$) with multi-head self-attention over 24 LiDAR sectors and a linear compression bottleneck ($384 \rightarrow 48$).
 
 <p align="center">
   <img src="docs/figures/Figure_01_System_Pipeline_Overview.png" alt="System Pipeline Overview" width="95%"/>
@@ -25,7 +21,7 @@ Mapless navigation using 2D LiDAR is fundamentally challenging because a single 
 ### 🔑 Key Results & Findings
 
 * **Simulation/Hardware Dissociation:** Across 3 zero-shot benchmark simulation arenas (Open, Dynamic, Corridor), the three leading temporally-informed variants are statistically indistinguishable ($92.0\%$ vs $91.3\%$ vs $88.0\%$). However, across **130 physical TurtleBot3 trials**, they separate with large margins (**$97.5\%$** for SAC-R-PV-STAM vs $65.0\%$ for SAC-MLP-FS and $32.5\%$ for SAC-PV-STAM).
-* **Rotation Contamination Mitigation:** Evaluated across 27,461 physical scan frames, unmitigated frame-stacking experiences a **$12.0	imes$ rotation-contamination ratio** during turns ($\omega \ge 0.1	ext{ rad/s}$), creating false motion signals. Sector attention and per-sector scan-difference eliminate this artifact without requiring scan registration.
+* **Rotation Contamination Mitigation:** Evaluated across 27,461 physical scan frames, unmitigated frame-stacking experiences a **$12.0\times$ rotation-contamination ratio** during turns ($\omega \ge 0.1\text{ rad/s}$), creating false motion signals. Sector attention and per-sector scan-difference eliminate this artifact without requiring scan registration.
 
 ---
 
@@ -41,13 +37,13 @@ Mapless navigation using 2D LiDAR is fundamentally challenging because a single 
 
 | Component / Layer Name | Mathematical Symbol | Tensor Shape | Parameters | Share (%) |
 | :--- | :---: | :---: | :---: | :---: |
-| **Learned Positional Encoding** | $\mathbf{E}_{\mathrm{pos}}$ | $24 	imes 16$ | 384 | 1.9% |
-| **Input Projection Weight** | $\mathbf{W}_{\mathrm{in}}$ | $16 	imes 3$ | 48 | 0.2% |
+| **Learned Positional Encoding** | $\mathbf{E}_{\mathrm{pos}}$ | $24 \times 16$ | 384 | 1.9% |
+| **Input Projection Weight** | $\mathbf{W}_{\mathrm{in}}$ | $16 \times 3$ | 48 | 0.2% |
 | **Input Projection Bias** | $\mathbf{b}_{\mathrm{in}}$ | $16$ | 16 | 0.1% |
-| **QKV Self-Attention Projection** | $\mathbf{W}_{QKV}$ | $48 	imes 16$ | 768 | 3.8% |
-| **Attention Output Weight** | $\mathbf{W}_{\mathrm{out}}$ | $16 	imes 16$ | 256 | 1.3% |
+| **QKV Self-Attention Projection** | $\mathbf{W}_{QKV}$ | $48 \times 16$ | 768 | 3.8% |
+| **Attention Output Weight** | $\mathbf{W}_{\mathrm{out}}$ | $16 \times 16$ | 256 | 1.3% |
 | **Attention Output Bias** | $\mathbf{b}_{\mathrm{out}}$ | $16$ | 16 | 0.1% |
-| **Linear Compression Weight** | $\mathbf{W}_{\mathrm{comp}}$ | $48 	imes 384$ | 18,432 | 92.3% |
+| **Linear Compression Weight** | $\mathbf{W}_{\mathrm{comp}}$ | $48 \times 384$ | 18,432 | 92.3% |
 | **Linear Compression Bias** | $\mathbf{b}_{\mathrm{comp}}$ | $48$ | 48 | 0.2% |
 | **Total PV-STAM Module** | | | **19,968** | **100.0%** |
 
@@ -139,18 +135,14 @@ python scripts/s01_pvstam_module.py
 
 ## 📜 Citation
 
-If you find PV-STAM useful for your research, please cite our paper:
+If you find PV-STAM useful for your research, please cite:
 
 ```bibtex
 @article{alqadhi2026pvstam,
   title={PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments},
-  author={Alqadhi, Anas Mahyoub Naji Saeed and El Muhammed, Munef and Bajhaw, Mohammed Ali M. S. and Ucar, Aysegul},
-  journal={Applied Sciences},
-  volume={16},
-  number={18},
-  pages={1--24},
-  year={2026},
-  publisher={MDPI}
+  author={Alqadhi, Anas},
+  journal={RAI Laboratory, Firat University},
+  year={2026}
 }
 ```
 
