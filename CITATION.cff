@@ -1,16 +1,20 @@
 cff-version: 1.2.0
 message: "If you use this software or data, please cite the paper below."
 title: "PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments"
+doi: "10.3390/app16189083"
+url: "https://www.mdpi.com/2076-3417/16/18/9083"
 authors:
   - family-names: Alqadhi
     given-names: Anas Mahyoub Naji Saeed
+    email: anas.m.qd@gmail.com
   - family-names: El Muhammed
     given-names: Munef
+    orcid: "https://orcid.org/0009-0002-4294-7270"
   - family-names: Bajhaw
     given-names: Mohammed Ali M. S.
   - family-names: Ucar
     given-names: Aysegul
-    orcid: ""
+    orcid: "https://orcid.org/0000-0002-5253-3779"
 preferred-citation:
   type: article
   title: "PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments"
@@ -24,6 +28,11 @@ preferred-citation:
     - family-names: Ucar
       given-names: Aysegul
   journal: "Applied Sciences"
+  volume: 16
+  issue: 18
+  article-number: 9083
   year: 2026
+  doi: "10.3390/app16189083"
+  url: "https://www.mdpi.com/2076-3417/16/18/9083"
 repository-code: "https://github.com/railab-firat/PV-STAM-mapless-DRL-navigation"
 license: MIT

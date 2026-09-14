@@ -3,8 +3,9 @@
 Official implementation, trained policy checkpoints, ROS 2 packages, and raw evaluation datasets for the paper:
 
 > **PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments**  
-> **Anas Alqadhi**  
-> **RAI Laboratory, Firat University**, 2026
+> **Anas Mahyoub Naji Saeed Alqadhi**, Munef El Muhammed, Mohammed Ali M. S. Bajhaw, Aysegul Ucar  
+> *Applied Sciences* (MDPI), 2026, 16(18), 9083 · [https://doi.org/10.3390/app16189083](https://doi.org/10.3390/app16189083)  
+> **RAI Laboratory, Firat University**
 
 ---
 
@@ -135,14 +136,20 @@ python scripts/s01_pvstam_module.py
 
 ## 📜 Citation
 
-If you find PV-STAM useful for your research, please cite:
+If you find PV-STAM useful for your research, please cite our published paper in *Applied Sciences*:
 
 ```bibtex
-@article{alqadhi2026pvstam,
-  title={PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments},
-  author={Alqadhi, Anas},
-  journal={RAI Laboratory, Firat University},
-  year={2026}
+@Article{app16189083,
+  author         = {Alqadhi, Anas Mahyoub Naji Saeed and El Muhammed, Munef and Bajhaw, Mohammed Ali M. S. and Ucar, Aysegul},
+  title          = {PV-STAM: Velocity-Aware Attention for Mapless Deep Reinforcement Learning Navigation in Dynamic Environments},
+  journal        = {Applied Sciences},
+  volume         = {16},
+  year           = {2026},
+  number         = {18},
+  article-number = {9083},
+  url            = {https://www.mdpi.com/2076-3417/16/18/9083},
+  issn           = {2076-3417},
+  doi            = {10.3390/app16189083}
 }
 ```
 
