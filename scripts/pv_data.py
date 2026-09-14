@@ -1,6 +1,8 @@
 """Shared data loading for canonical eval + training logs."""
 import os, csv, glob, numpy as np
-CANON = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "PVSTAM_PAPER_RESOURCES_ARCHIVE", "03_evaluation_datasets_csv"))
+repo_eval = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "evaluation"))
+external_eval = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "PVSTAM_PAPER_RESOURCES_ARCHIVE", "03_evaluation_datasets_csv"))
+CANON = repo_eval if os.path.exists(repo_eval) else external_eval
 PHASE = CANON
 
 # file-stem -> display name (paper variant names)

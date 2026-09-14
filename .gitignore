@@ -27,3 +27,5 @@ Thumbs.db
 *.backup_*
  
 .agents/
+ 
+01_final_rendered_figures_png_pdf_svg/
