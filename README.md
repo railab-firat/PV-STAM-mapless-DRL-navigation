@@ -24,6 +24,13 @@ Mapless navigation using 2D LiDAR is fundamentally challenging because a single 
 * **Simulation and Hardware Dissociation:** Across three zero-shot benchmark simulation arenas (Open, Dynamic, Corridor), the three leading temporally-informed variants are statistically indistinguishable (92.0% vs 91.3% vs 88.0% success rate). However, across **130 physical TurtleBot3 trials**, performance diverges significantly: **97.5%** for SAC-R-PV-STAM versus 65.0% for SAC-MLP-FS and 32.5% for SAC-PV-STAM.
 * **Rotation Contamination Mitigation:** Evaluated across 27,461 physical scan frames, unmitigated frame-stacking exhibits a **12.0-fold rotation-contamination ratio** during turns ($\omega \ge 0.1\text{ rad/s}$), producing spurious motion signals. Sector attention and per-sector scan-differencing eliminate this artifact without requiring scan registration or odometry fusion.
 
+<p align="center">
+  <img src="docs/figures/Figure_07_Canonical_Evaluation_Benchmarks.png" alt="Canonical Evaluation Benchmarks" width="95%"/>
+  <br/>
+  <em>Figure 7: Simulation navigation performance across Benchmark A (Open Arena), Benchmark B (Dynamic Obstacles), and Benchmark C (Corridor Arena) with 95% Wilson confidence intervals (pooled n = 300 per variant).</em>
+</p>
+
+
 ---
 
 ## Module Architecture
@@ -86,6 +93,13 @@ Mapless navigation using 2D LiDAR is fundamentally challenging because a single 
 | **SAC-MLP-FS** | 14 / 20 (70.0%) | 12 / 20 (60.0%) | 65.0% | 3 / 40 | 11 |
 | **SAC-PV-STAM** | 1 / 10 (10.0%) | 11 / 20 (55.0%) | 32.5% | 9 / 30 | 10 |
 | **SAC-MLP** | 0 / 10 (0.0%) | 0 / 10 (0.0%) | 0.0% | 0 / 20 | 20 |
+
+<p align="center">
+  <img src="docs/figures/Figure_12_Hardware_Physical_Trial_Outcomes.png" alt="Hardware Evaluation Outcomes" width="95%"/>
+  <br/>
+  <em>Figure 12: Empirical hardware trial outcome breakdown across 130 physical TurtleBot3 trials in the static corridor (Scenario 2) and moving obstacle (Scenario 3) conditions.</em>
+</p>
+
 
 ---
 
